@@ -57,10 +57,10 @@ function App() {
                   element={<Monitoring />}
                 />
 
-                <Route
-                   path="/settings"
-                   element={<Settings />
-                />
+                  <Route
+                      path="/settings"
+                      element={<Settings />}
+                  />
 
               </Routes>
             </DashboardLayout>
