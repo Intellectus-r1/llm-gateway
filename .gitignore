@@ -4,18 +4,24 @@
 .vscode/
 
 # Java / Maven
-target/
+backend/target/
 *.class
 
 # Node
 node_modules/
 dist/
 
-# Environment
+# Environment and secrets
 .env
 .env.*
 !.env.example
+application-local.properties
+application-secret.properties
+
+# Logs
+*.log
 
 # OS
 .DS_Store
 Thumbs.db
+
