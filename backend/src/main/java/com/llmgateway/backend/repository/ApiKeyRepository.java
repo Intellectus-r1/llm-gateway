@@ -10,5 +10,8 @@ public interface ApiKeyRepository extends JpaRepository<ApiKey, Long> {
 
     List<ApiKey> findByUserId(Long userId);
 
+    Optional<ApiKey> findByKeyHashAndActiveTrue(String keyHash);
+
+    // Temporary compatibility lookup for existing plaintext keys.
     Optional<ApiKey> findByKeyValueAndActiveTrue(String keyValue);
 }

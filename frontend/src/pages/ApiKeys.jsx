@@ -11,6 +11,7 @@ function ApiKeys() {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
+  const [newlyCreatedKey, setNewlyCreatedKey] = useState("");
 
   const loadApiKeys = async () => {
     try {
@@ -54,25 +55,27 @@ function ApiKeys() {
   };
 }, []);
 
-  const handleCreate = async (e) => {
-    e.preventDefault();
+    const handleCreate = async (e) => {
+        e.preventDefault();
 
-    if (!name.trim()) return;
+        if (!name.trim()) return;
 
-    try {
-      setCreating(true);
-      setError("");
+        try {
+            setCreating(true);
+            setError("");
+            setNewlyCreatedKey("");
 
-      await createApiKey(name.trim());
+            const createdKey = await createApiKey(name.trim());
 
-      setName("");
-      await loadApiKeys();
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setCreating(false);
-    }
-  };
+            setNewlyCreatedKey(createdKey.keyValue);
+            setName("");
+            await loadApiKeys();
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setCreating(false);
+        }
+    };
 
   const handleRevoke = async (id) => {
     try {
@@ -147,6 +150,29 @@ function ApiKeys() {
         </div>
       )}
 
+        {newlyCreatedKey && (
+            <div className="mt-6 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
+                <h2 className="font-medium">Your new API key</h2>
+                <p className="mt-1 text-sm text-[var(--color-muted)]">
+                    Copy this key now. You won't be able to view it again.
+                </p>
+
+                <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                    <code className="min-w-0 flex-1 break-all rounded-md border border-[var(--color-border)] p-3 text-xs">
+                        {newlyCreatedKey}
+                    </code>
+
+                    <button
+                        type="button"
+                        onClick={() => navigator.clipboard.writeText(newlyCreatedKey)}
+                        className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-sm text-white"
+                    >
+                        Copy key
+                    </button>
+                </div>
+            </div>
+        )}
+
       {/* API key list */}
       <div className="mt-6 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)]">
         <div className="border-b border-[var(--color-border)] px-6 py-5">
@@ -190,23 +216,9 @@ function ApiKeys() {
                       {apiKey.name}
                     </td>
 
-                    <td className="px-6 py-4">
-                       <div className="flex items-center gap-3">
-                         <span className="font-mono text-xs">
-                           {apiKey.keyValue}
-                         </span>
-
-                         <button
-                           type="button"
-                           onClick={() =>
-                             navigator.clipboard.writeText(apiKey.keyValue)
-                           }
-                           className="text-xs font-medium text-[var(--color-primary)] hover:underline"
-                         >
-                         Copy
-                     </button>
-                   </div>
-                  </td>
+                      <td className="px-6 py-4 font-mono text-xs">
+                          {apiKey.keyValue ? "••••••••••••••••" : "Hidden"}
+                      </td>
 
                     <td className="px-6 py-4">
                       <span

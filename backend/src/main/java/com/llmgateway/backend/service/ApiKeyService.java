@@ -2,13 +2,14 @@ package com.llmgateway.backend.service;
 
 import com.llmgateway.backend.dto.ApiKeyRequest;
 import com.llmgateway.backend.dto.ApiKeyResponse;
+import com.llmgateway.backend.dto.ApiKeySummary;
 import com.llmgateway.backend.entity.ApiKey;
 import com.llmgateway.backend.entity.User;
 import com.llmgateway.backend.repository.ApiKeyRepository;
 import com.llmgateway.backend.repository.UserRepository;
-import com.llmgateway.backend.dto.ApiKeySummary;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
@@ -21,11 +22,10 @@ public class ApiKeyService {
 
     private final ApiKeyRepository apiKeyRepository;
     private final UserRepository userRepository;
+    private final ApiKeyHasher apiKeyHasher;
 
-    public ApiKeyResponse createApiKey(
-            ApiKeyRequest request,
-            String email) {
-
+    @Transactional
+    public ApiKeyResponse createApiKey(ApiKeyRequest request, String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -33,7 +33,8 @@ public class ApiKeyService {
 
         ApiKey apiKey = ApiKey.builder()
                 .name(request.getName())
-                .keyValue(keyValue)
+                .keyHash(apiKeyHasher.hash(keyValue))
+                .keyValue(null)
                 .active(true)
                 .createdAt(LocalDateTime.now())
                 .user(user)
@@ -44,44 +45,40 @@ public class ApiKeyService {
         return ApiKeyResponse.builder()
                 .id(savedKey.getId())
                 .name(savedKey.getName())
-                .keyValue(savedKey.getKeyValue())
+                .keyValue(keyValue)
                 .active(savedKey.isActive())
                 .createdAt(savedKey.getCreatedAt())
                 .build();
     }
 
     private String generateApiKey() {
-
         byte[] randomBytes = new byte[32];
+        new SecureRandom().nextBytes(randomBytes);
 
-        SecureRandom secureRandom = new SecureRandom();
-        secureRandom.nextBytes(randomBytes);
-
-        return "lgw_" +
-                Base64.getUrlEncoder()
-                        .withoutPadding()
-                        .encodeToString(randomBytes);
+        return "lgw_" + Base64.getUrlEncoder()
+                .withoutPadding()
+                .encodeToString(randomBytes);
     }
 
+    @Transactional(readOnly = true)
     public List<ApiKeySummary> getUserApiKeys(String email) {
-
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         return apiKeyRepository.findByUserId(user.getId())
                 .stream()
                 .map(apiKey -> ApiKeySummary.builder()
-                .id(apiKey.getId())
-                .name(apiKey.getName())
-                .keyValue(apiKey.getKeyValue())
-                .active(apiKey.isActive())
-                .createdAt(apiKey.getCreatedAt())
-                .build())
+                        .id(apiKey.getId())
+                        .name(apiKey.getName())
+                        .keyValue(null)
+                        .active(apiKey.isActive())
+                        .createdAt(apiKey.getCreatedAt())
+                        .build())
                 .toList();
     }
 
+    @Transactional
     public void revokeApiKey(Long apiKeyId, String email) {
-
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -93,7 +90,6 @@ public class ApiKeyService {
         }
 
         apiKey.setActive(false);
-
         apiKeyRepository.save(apiKey);
     }
 }

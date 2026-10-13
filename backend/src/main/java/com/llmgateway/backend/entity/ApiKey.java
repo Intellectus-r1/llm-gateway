@@ -18,8 +18,11 @@ public class ApiKey {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(unique = true)
     private String keyValue;
+
+    @Column(unique = true, length = 64)
+    private String keyHash;
 
     @Column(nullable = false)
     private String name;
