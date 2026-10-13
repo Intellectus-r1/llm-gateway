@@ -30,9 +30,8 @@ public class NvidiaResponse {
     @Getter
     @Setter
     public static class Usage {
-        private int prompt_tokens;
-        private int completion_tokens;
-        private int total_tokens;
-
+        private Integer prompt_tokens;
+        private Integer completion_tokens;
+        private Integer total_tokens;
     }
 }

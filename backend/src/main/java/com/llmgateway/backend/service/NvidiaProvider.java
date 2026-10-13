@@ -79,18 +79,20 @@ public class NvidiaProvider implements LlmProvider {
             );
         }
 
+        NvidiaResponse.Usage usage = response.getUsage();
+
+        if (usage == null
+                || usage.getPrompt_tokens() == null
+                || usage.getCompletion_tokens() == null) {
+            throw new IllegalStateException(
+                    "NVIDIA response did not contain token usage metadata"
+            );
+        }
+
         return LlmResponse.builder()
                 .response(choice.getMessage().getContent())
-                .inputTokens(
-                        response.getUsage() != null
-                                ? response.getUsage().getPrompt_tokens()
-                                : 0
-                )
-                .outputTokens(
-                        response.getUsage() != null
-                                ? response.getUsage().getCompletion_tokens()
-                                : 0
-                )
+                .inputTokens(usage.getPrompt_tokens())
+                .outputTokens(usage.getCompletion_tokens())
                 .build();
     }
 }

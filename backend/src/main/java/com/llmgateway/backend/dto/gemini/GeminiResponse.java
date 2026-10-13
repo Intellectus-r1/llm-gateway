@@ -34,8 +34,8 @@ public class GeminiResponse {
     @Getter
     @Setter
     public static class UsageMetadata {
-        private int promptTokenCount;
-        private int candidatesTokenCount;
-        private int totalTokenCount;
+        private Integer promptTokenCount;
+        private Integer candidatesTokenCount;
+        private Integer totalTokenCount;
     }
 }

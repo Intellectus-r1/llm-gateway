@@ -82,18 +82,18 @@ public class GeminiProvider implements LlmProvider {
         GeminiResponse.UsageMetadata usage =
                 response.getUsageMetadata();
 
+        if (usage == null
+                || usage.getPromptTokenCount() == null
+                || usage.getCandidatesTokenCount() == null) {
+            throw new IllegalStateException(
+                    "Gemini response did not contain token usage metadata"
+            );
+        }
+
         return LlmResponse.builder()
                 .response(text)
-                .inputTokens(
-                        usage != null
-                                ? usage.getPromptTokenCount()
-                                : 0
-                )
-                .outputTokens(
-                        usage != null
-                                ? usage.getCandidatesTokenCount()
-                                : 0
-                )
+                .inputTokens(usage.getPromptTokenCount())
+                .outputTokens(usage.getCandidatesTokenCount())
                 .build();
     }
 }
