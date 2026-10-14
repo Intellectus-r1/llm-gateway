@@ -41,51 +41,34 @@ public class GatewayService {
             fallbackProvider = nvidiaProvider;
         }
 
+        LlmResponse llmResponse;
+        String selectedModel = model;
+        LlmProvider selectedProvider = primaryProvider;
+
         try {
-
-            LlmResponse llmResponse =
-                    primaryProvider.generateResponse(
-                            request.getMessage(),
-                            model
-                    );
-
-            saveUsage(
-                    primaryProvider,
-                    model,
-                    llmResponse
+            llmResponse = primaryProvider.generateResponse(
+                    request.getMessage(),
+                    model
             );
-
-            return ChatResponse.builder()
-                    .response(llmResponse.getResponse())
-                    .provider(primaryProvider.getProviderName())
-                    .model(model)
-                    .build();
-
         } catch (Exception primaryException) {
+            selectedProvider = fallbackProvider;
+            selectedModel = fallbackProvider == nvidiaProvider
+                    ? "nvidia/nemotron-3-super-120b-a12b"
+                    : "gemini-3.1-flash-lite";
 
-            String fallbackModel =
-                    fallbackProvider == nvidiaProvider
-                            ? "nvidia/nemotron-3-super-120b-a12b"
-                            : "gemini-3.1-flash-lite";
-
-            LlmResponse llmResponse =
-                    fallbackProvider.generateResponse(
-                            request.getMessage(),
-                            fallbackModel
-                    );
-
-            saveUsage(
-                    fallbackProvider,
-                    fallbackModel,
-                    llmResponse
+            llmResponse = fallbackProvider.generateResponse(
+                    request.getMessage(),
+                    selectedModel
             );
-
-            return ChatResponse.builder()
-                    .response(llmResponse.getResponse())
-                    .provider(fallbackProvider.getProviderName())
-                    .model(fallbackModel)
-                    .build();
         }
+
+        saveUsage(selectedProvider, selectedModel, llmResponse);
+
+        return ChatResponse.builder()
+                .response(llmResponse.getResponse())
+                .provider(selectedProvider.getProviderName())
+                .model(selectedModel)
+                .build();
     }
 
     private void saveUsage(

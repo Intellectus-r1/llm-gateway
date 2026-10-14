@@ -18,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -193,6 +194,34 @@ class GatewayServiceTest {
                 "Hello", "gemini-3.1-flash-lite"
         );
         verify(usageRecordRepository, times(1)).save(any(UsageRecord.class));
+    }
+
+    @Test
+    void usageSaveFailureDoesNotTriggerFallbackProvider() {
+        ChatRequest request = request("gemini-3.1-flash-lite");
+
+        when(geminiProvider.getProviderName()).thenReturn("gemini");
+        when(geminiProvider.generateResponse(
+                "Hello", "gemini-3.1-flash-lite"
+        )).thenReturn(LlmResponse.builder()
+                .response("Hello!")
+                .inputTokens(5)
+                .outputTokens(3)
+                .build());
+
+        when(userRepository.findByEmail("test@example.com"))
+                .thenReturn(Optional.of(user));
+        when(costCalculator.calculateCost(any(), any(), anyInt(), anyInt()))
+                .thenReturn(0.0);
+        when(usageRecordRepository.save(any(UsageRecord.class)))
+                .thenThrow(new RuntimeException("Database unavailable"));
+
+        assertThrows(RuntimeException.class,
+                () -> gatewayService.chat(request));
+
+        verify(geminiProvider).generateResponse(
+                "Hello", "gemini-3.1-flash-lite");
+        verifyNoInteractions(nvidiaProvider);
     }
 
     private ChatRequest request(String model) {
