@@ -80,40 +80,42 @@ function Dashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <div className="mb-2 flex items-center gap-2 text-sm text-[var(--color-muted)]">
-            <span>Overview</span>
-            <span>/</span>
-            <span>Gateway</span>
-          </div>
 
-          <h1 className="text-3xl font-semibold tracking-tight">
-            Dashboard
-          </h1>
+        {/* Header */}
+        <section className="flex min-w-0 flex-col gap-5 border-b border-[var(--color-border)] pb-6 sm:gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="min-w-0">
+                <div className="mb-3 flex flex-wrap items-center gap-2 text-xs font-medium tracking-wide text-[var(--color-muted)]">
+                    <span>OVERVIEW</span>
+                    <span className="opacity-50">/</span>
+                    <span className="text-[var(--color-primary)]">DASHBOARD</span>
+                </div>
 
-          <p className="mt-2 max-w-2xl text-sm text-[var(--color-muted)]">
-            Monitor your LLM gateway activity, token consumption, and provider
-            usage from one place.
-          </p>
-        </div>
+                <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+                    Dashboard
+                </h1>
 
-        <div className="flex items-center gap-3">
-          <GatewayStatus healthy={isGatewayHealthy} />
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--color-muted)]">
+                    Monitor gateway activity, token consumption, and provider performance
+                    from one place.
+                </p>
+            </div>
 
-          <Link
-            to="/playground"
-            className="inline-flex items-center gap-2 rounded-lg bg-[var(--color-primary)] px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:opacity-90"
-          >
-            <PlusIcon />
-            Open Playground
-          </Link>
-        </div>
-      </section>
+            <div className="flex min-w-0 flex-wrap items-center gap-3">
+                <GatewayStatus healthy={isGatewayHealthy} />
 
-      {/* KPI Cards */}
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <Link
+                    to="/playground"
+                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--color-primary)] px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:opacity-90 hover:shadow-md active:translate-y-0"
+                >
+                    <PlusIcon />
+                    Open Playground
+                </Link>
+            </div>
+        </section>
+
+
+        {/* KPI Cards */}
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-4">
         <StatCard
           label="Total Requests"
           value={formatNumber(usage?.totalRequests)}
@@ -479,12 +481,12 @@ function UsageChart({ history }) {
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <svg
-          viewBox={`0 0 ${chartWidth} ${chartHeight}`}
-          className="h-64 min-w-[620px] w-full"
-          preserveAspectRatio="none"
-        >
+        <div className="w-full min-w-0">
+            <svg
+                viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+                className="block h-auto w-full"
+                preserveAspectRatio="xMidYMid meet"
+            >
           {[0, 1, 2, 3].map((line) => {
             const y =
               paddingY +
@@ -565,7 +567,7 @@ function RecentRequests({ history }) {
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[700px] text-left text-sm">
+        <table className="w-full table-auto text-left text-sm">
         <thead>
           <tr className="border-b border-[var(--color-border)]">
             <th className="px-6 py-4 font-medium text-[var(--color-muted)]">
@@ -576,17 +578,17 @@ function RecentRequests({ history }) {
               Provider
             </th>
 
-            <th className="px-6 py-4 font-medium text-[var(--color-muted)]">
-              Model
-            </th>
+              <th className="hidden px-6 py-4 font-medium text-[var(--color-muted)] md:table-cell">
+                  Model
+              </th>
 
             <th className="px-6 py-4 font-medium text-[var(--color-muted)]">
               Tokens
             </th>
 
-            <th className="px-6 py-4 text-right font-medium text-[var(--color-muted)]">
-              Status
-            </th>
+              <th className="hidden px-6 py-4 text-right font-medium text-[var(--color-muted)] sm:table-cell">
+                  Status
+              </th>
           </tr>
         </thead>
 
@@ -606,8 +608,8 @@ function RecentRequests({ history }) {
                 </span>
               </td>
 
-              <td className="max-w-[260px] px-6 py-4">
-                <span
+                <td className="hidden max-w-[260px] px-6 py-4 md:table-cell">
+                    <span
                   className="block truncate text-[var(--color-muted)]"
                   title={record.model}
                 >
@@ -621,7 +623,7 @@ function RecentRequests({ history }) {
                 )}
               </td>
 
-              <td className="px-6 py-4 text-right">
+                <td className="hidden px-6 py-4 text-right sm:table-cell">
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700 dark:bg-green-950/30 dark:text-green-400">
                   <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
                   Success
@@ -659,9 +661,9 @@ function StatCard({ label, value, description, icon }) {
             {label}
           </p>
 
-          <p className="mt-3 text-2xl font-semibold tracking-tight">
-            {value}
-          </p>
+            <p className="mt-3 break-words text-xl font-semibold tracking-tight sm:text-2xl">
+                {value}
+            </p>
 
           <p className="mt-1 text-xs text-[var(--color-muted)]">
             {description}
@@ -678,7 +680,7 @@ function StatCard({ label, value, description, icon }) {
 
 function GatewayStatus({ healthy }) {
   return (
-    <div className="hidden items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3.5 py-2.5 sm:flex">
+    <div className="flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 sm:px-3.5 sm:py-2.5">
       <span
         className={`h-2.5 w-2.5 rounded-full ${
           healthy ? "bg-green-500" : "bg-red-500"

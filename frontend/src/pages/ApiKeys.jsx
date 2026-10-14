@@ -12,6 +12,7 @@ function ApiKeys() {
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
   const [newlyCreatedKey, setNewlyCreatedKey] = useState("");
+  const [copyStatus, setCopyStatus] = useState("");
 
   const loadApiKeys = async () => {
     try {
@@ -64,6 +65,7 @@ function ApiKeys() {
             setCreating(true);
             setError("");
             setNewlyCreatedKey("");
+            setCopyStatus("");
 
             const createdKey = await createApiKey(name.trim());
 
@@ -74,6 +76,15 @@ function ApiKeys() {
             setError(err.message);
         } finally {
             setCreating(false);
+        }
+    };
+
+    const handleCopyKey = async () => {
+        try {
+            await navigator.clipboard.writeText(newlyCreatedKey);
+            setCopyStatus("API key copied successfully.");
+        } catch {
+            setCopyStatus("Copy failed. Please copy the key manually.");
         }
     };
 
@@ -164,12 +175,16 @@ function ApiKeys() {
 
                     <button
                         type="button"
-                        onClick={() => navigator.clipboard.writeText(newlyCreatedKey)}
-                        className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-sm text-white"
-                    >
+                        onClick={handleCopyKey}
+                        className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:opacity-80 hover:shadow-md active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"                    >
                         Copy key
                     </button>
                 </div>
+                {copyStatus && (
+                    <p role="status" className="mt-2 text-sm text-[var(--color-muted)]">
+                        {copyStatus}
+                    </p>
+                )}
             </div>
         )}
 
