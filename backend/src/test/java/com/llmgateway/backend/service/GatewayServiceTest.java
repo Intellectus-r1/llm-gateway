@@ -224,6 +224,50 @@ class GatewayServiceTest {
         verifyNoInteractions(nvidiaProvider);
     }
 
+    @Test
+    void nvidiaPrimaryFailureFallsBackToGemini() {
+        ChatRequest request = request("nvidia/test-model");
+
+        when(nvidiaProvider.generateResponse(
+                "Hello", "nvidia/test-model"
+        )).thenThrow(new RuntimeException("NVIDIA unavailable"));
+
+        when(geminiProvider.getProviderName()).thenReturn("gemini");
+        when(geminiProvider.generateResponse(
+                "Hello", "gemini-3.1-flash-lite"
+        )).thenReturn(LlmResponse.builder()
+                .response("Gemini fallback response")
+                .inputTokens(6)
+                .outputTokens(4)
+                .build());
+
+        when(userRepository.findByEmail("test@example.com"))
+                .thenReturn(Optional.of(user));
+        when(costCalculator.calculateCost(any(), any(), anyInt(), anyInt()))
+                .thenReturn(0.0);
+
+        ChatResponse response = gatewayService.chat(request);
+
+        assertEquals("Gemini fallback response", response.getResponse());
+        assertEquals("gemini", response.getProvider());
+        assertEquals("gemini-3.1-flash-lite", response.getModel());
+
+        ArgumentCaptor<UsageRecord> captor =
+                ArgumentCaptor.forClass(UsageRecord.class);
+        verify(usageRecordRepository, times(1)).save(captor.capture());
+
+        UsageRecord saved = captor.getValue();
+        assertEquals("gemini", saved.getProvider());
+        assertEquals("gemini-3.1-flash-lite", saved.getModel());
+        assertEquals(6, saved.getInputTokens());
+        assertEquals(4, saved.getOutputTokens());
+        assertEquals(10, saved.getTotalTokens());
+
+        verify(nvidiaProvider).generateResponse("Hello", "nvidia/test-model");
+        verify(geminiProvider).generateResponse(
+                "Hello", "gemini-3.1-flash-lite");
+    }
+
     private ChatRequest request(String model) {
         ChatRequest request = new ChatRequest();
         request.setMessage("Hello");
