@@ -5,7 +5,9 @@ import com.llmgateway.backend.service.UsageService;
 import com.llmgateway.backend.dto.ProviderUsageResponse;
 import com.llmgateway.backend.dto.UsageHistoryResponse;
 import java.util.List;
+import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -26,7 +28,15 @@ public class UsageController {
     }
 
     @GetMapping("/history")
-    public List<UsageHistoryResponse> getUsageHistory() {
-        return usageService.getUsageHistory();
+    public List<UsageHistoryResponse> getUsageHistory(
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate from,
+
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate to) {
+
+        return usageService.getUsageHistory(from, to);
     }
 }

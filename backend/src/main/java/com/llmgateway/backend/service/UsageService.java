@@ -10,6 +10,10 @@ import com.llmgateway.backend.dto.UsageHistoryResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -115,6 +119,19 @@ public class UsageService {
     }
 
     public List<UsageHistoryResponse> getUsageHistory() {
+        return getUsageHistory(null, null);
+    }
+
+    public List<UsageHistoryResponse> getUsageHistory(
+            LocalDate from,
+            LocalDate to) {
+
+        if (from != null && to != null && from.isAfter(to)) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "'from' date must be on or before 'to' date"
+            );
+        }
 
         String email = SecurityContextHolder
                 .getContext()
@@ -126,9 +143,29 @@ public class UsageService {
                 .orElseThrow(() ->
                         new RuntimeException("User not found"));
 
-        return usageRecordRepository
-                .findByUserIdOrderByCreatedAtDesc(user.getId())
-                .stream()
+        List<UsageRecord> records;
+
+        if (from == null && to == null) {
+            records = usageRecordRepository
+                    .findByUserIdOrderByCreatedAtDesc(user.getId());
+        } else {
+            LocalDateTime fromDateTime = from != null
+                    ? from.atStartOfDay()
+                    : LocalDateTime.of(1970, 1, 1, 0, 0);
+
+            LocalDateTime toExclusive = to != null
+                    ? to.plusDays(1).atStartOfDay()
+                    : LocalDateTime.of(9999, 12, 31, 0, 0);
+
+            records = usageRecordRepository
+                    .findByUserIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThanOrderByCreatedAtDesc(
+                            user.getId(),
+                            fromDateTime,
+                            toExclusive
+                    );
+        }
+
+        return records.stream()
                 .map(record -> UsageHistoryResponse.builder()
                         .id(record.getId())
                         .provider(record.getProvider())
