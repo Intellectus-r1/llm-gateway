@@ -171,22 +171,31 @@ export const revokeApiKey = async (id) => {
   return true;
 };
 
-export const getUsageHistory = async () => {
-  const token = localStorage.getItem("token");
 
-  const response = await fetch(`${API_BASE_URL}/api/usage/history`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+export const getUsageHistory = async (from, to) => {
+    const token = localStorage.getItem("token");
+    const params = new URLSearchParams();
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch usage history");
-  }
+    if (from) params.set("from", from);
+    if (to) params.set("to", to);
 
-  return response.json();
+    const query = params.toString();
+    const url = `${API_BASE_URL}/api/usage/history${query ? `?${query}` : ""}`;
+
+    const response = await fetch(url, {
+        method: "GET",
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error("Failed to fetch usage history");
+    }
+
+    return response.json();
 };
+
 
 export const getProviderHealth = async () => {
   const token = localStorage.getItem("token");
