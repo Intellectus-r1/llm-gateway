@@ -2,11 +2,20 @@ package com.llmgateway.backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "usage_records")
+@Table(
+        name = "usage_records",
+        indexes = {
+                @Index(
+                        name = "idx_usage_user_created",
+                        columnList = "user_id, created_at"
+                )
+        }
+)
 @Getter
 @Setter
 @NoArgsConstructor
