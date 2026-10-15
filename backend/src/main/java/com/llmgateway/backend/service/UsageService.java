@@ -25,96 +25,46 @@ public class UsageService {
     private final UserRepository userRepository;
 
     public UsageSummaryResponse getUserUsageSummary() {
-
         String email = SecurityContextHolder
                 .getContext()
                 .getAuthentication()
                 .getName();
 
-        User user = userRepository
-                .findByEmail(email)
-                .orElseThrow(() ->
-                        new RuntimeException("User not found"));
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        List<UsageRecord> records =
-                usageRecordRepository.findByUserId(user.getId());
-
-        long totalInputTokens = records.stream()
-                .mapToLong(UsageRecord::getInputTokens)
-                .sum();
-
-        long totalOutputTokens = records.stream()
-                .mapToLong(UsageRecord::getOutputTokens)
-                .sum();
-
-        long totalTokens = records.stream()
-                .mapToLong(UsageRecord::getTotalTokens)
-                .sum();
-
-        double totalEstimatedCost = records.stream()
-                .mapToDouble(UsageRecord::getEstimatedCost)
-                .sum();
+        Object[] totals = usageRecordRepository
+                .summarizeUsageByUserId(user.getId());
 
         return UsageSummaryResponse.builder()
-                .totalRequests(records.size())
-                .totalInputTokens(totalInputTokens)
-                .totalOutputTokens(totalOutputTokens)
-                .totalTokens(totalTokens)
-                .totalEstimatedCost(totalEstimatedCost)
+                .totalRequests(((Number) totals[4]).longValue())
+                .totalInputTokens(((Number) totals[0]).longValue())
+                .totalOutputTokens(((Number) totals[1]).longValue())
+                .totalTokens(((Number) totals[2]).longValue())
+                .totalEstimatedCost(((Number) totals[3]).doubleValue())
                 .build();
     }
 
     public List<ProviderUsageResponse> getProviderUsage() {
-
         String email = SecurityContextHolder
                 .getContext()
                 .getAuthentication()
                 .getName();
 
-        User user = userRepository
-                .findByEmail(email)
-                .orElseThrow(() ->
-                        new RuntimeException("User not found"));
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        List<UsageRecord> records =
-                usageRecordRepository.findByUserId(user.getId());
-
-        return records.stream()
-                .collect(java.util.stream.Collectors.groupingBy(
-                        UsageRecord::getProvider
-                ))
-                .entrySet()
+        return usageRecordRepository
+                .summarizeUsageByProvider(user.getId())
                 .stream()
-                .map(entry -> {
-
-                    String provider = entry.getKey();
-                    List<UsageRecord> providerRecords = entry.getValue();
-
-                    long inputTokens = providerRecords.stream()
-                            .mapToLong(UsageRecord::getInputTokens)
-                            .sum();
-
-                    long outputTokens = providerRecords.stream()
-                            .mapToLong(UsageRecord::getOutputTokens)
-                            .sum();
-
-                    long totalTokens = providerRecords.stream()
-                            .mapToLong(UsageRecord::getTotalTokens)
-                            .sum();
-
-                    double estimatedCost = providerRecords.stream()
-                            .mapToDouble(UsageRecord::getEstimatedCost)
-                            .sum();
-
-                    return ProviderUsageResponse.builder()
-                            .provider(provider)
-                            .requests(providerRecords.size())
-                            .inputTokens(inputTokens)
-                            .outputTokens(outputTokens)
-                            .totalTokens(totalTokens)
-                            .estimatedCost(estimatedCost)
-                            .build();
-                })
+                .map(row -> ProviderUsageResponse.builder()
+                        .provider((String) row[0])
+                        .requests(((Number) row[1]).longValue())
+                        .inputTokens(((Number) row[2]).longValue())
+                        .outputTokens(((Number) row[3]).longValue())
+                        .totalTokens(((Number) row[4]).longValue())
+                        .estimatedCost(((Number) row[5]).doubleValue())
+                        .build())
                 .toList();
     }
 

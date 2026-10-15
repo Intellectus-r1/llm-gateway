@@ -71,16 +71,11 @@ class UsageServiceTest {
     void summaryAggregatesOnlyTheAuthenticatedUsersRecords() {
         when(userRepository.findByEmail("analytics@example.com"))
                 .thenReturn(Optional.of(user));
-        when(usageRecordRepository.findByUserId(7L))
-                .thenReturn(List.of(
-                        record(1L, "gemini", 100, 40, 0.0,
-                                LocalDateTime.of(2026, 10, 13, 10, 0)),
-                        record(2L, "nvidia", 60, 20, 0.0,
-                                LocalDateTime.of(2026, 10, 13, 11, 0))
-                ));
 
-        UsageSummaryResponse summary =
-                usageService.getUserUsageSummary();
+        when(usageRecordRepository.summarizeUsageByUserId(7L))
+                .thenReturn(new Object[]{160L, 60L, 220L, 0.0, 2L});
+
+        UsageSummaryResponse summary = usageService.getUserUsageSummary();
 
         assertEquals(2, summary.getTotalRequests());
         assertEquals(160, summary.getTotalInputTokens());
@@ -88,25 +83,21 @@ class UsageServiceTest {
         assertEquals(220, summary.getTotalTokens());
         assertEquals(0.0, summary.getTotalEstimatedCost());
 
-        verify(usageRecordRepository).findByUserId(7L);
+        verify(usageRecordRepository).summarizeUsageByUserId(7L);
     }
 
     @Test
     void providerUsageGroupsRecordsAndSumsTokens() {
         when(userRepository.findByEmail("analytics@example.com"))
                 .thenReturn(Optional.of(user));
-        when(usageRecordRepository.findByUserId(7L))
+
+        when(usageRecordRepository.summarizeUsageByProvider(7L))
                 .thenReturn(List.of(
-                        record(1L, "gemini", 100, 40, 0.0,
-                                LocalDateTime.of(2026, 10, 13, 10, 0)),
-                        record(2L, "gemini", 50, 10, 0.0,
-                                LocalDateTime.of(2026, 10, 13, 11, 0)),
-                        record(3L, "nvidia", 60, 20, 0.0,
-                                LocalDateTime.of(2026, 10, 13, 12, 0))
+                        new Object[]{"gemini", 2L, 150L, 50L, 200L, 0.0},
+                        new Object[]{"nvidia", 1L, 60L, 20L, 80L, 0.0}
                 ));
 
-        List<ProviderUsageResponse> result =
-                usageService.getProviderUsage();
+        List<ProviderUsageResponse> result = usageService.getProviderUsage();
 
         assertEquals(2, result.size());
 
@@ -121,7 +112,7 @@ class UsageServiceTest {
         assertEquals(200, gemini.getTotalTokens());
         assertEquals(0.0, gemini.getEstimatedCost());
 
-        verify(usageRecordRepository).findByUserId(7L);
+        verify(usageRecordRepository).summarizeUsageByProvider(7L);
     }
 
     @Test
@@ -154,7 +145,9 @@ class UsageServiceTest {
     void emptyUsageReturnsZeroSummaryAndEmptyLists() {
         when(userRepository.findByEmail("analytics@example.com"))
                 .thenReturn(Optional.of(user));
-        when(usageRecordRepository.findByUserId(7L))
+        when(usageRecordRepository.summarizeUsageByUserId(7L))
+                .thenReturn(new Object[]{0L, 0L, 0L, 0.0, 0L});
+        when(usageRecordRepository.summarizeUsageByProvider(7L))
                 .thenReturn(List.of());
 
         UsageSummaryResponse summary =
