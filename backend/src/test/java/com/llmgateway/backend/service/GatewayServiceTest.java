@@ -164,6 +164,11 @@ class GatewayServiceTest {
         assertThrows(RuntimeException.class,
                 () -> gatewayService.chat(request));
 
+        verify(geminiProvider).generateResponse(
+                "Hello", "gemini-3.1-flash-lite");
+        verify(nvidiaProvider).generateResponse(
+                "Hello", "nvidia/nemotron-3-super-120b-a12b");
+
         verify(usageRecordRepository, never()).save(any(UsageRecord.class));
     }
 
