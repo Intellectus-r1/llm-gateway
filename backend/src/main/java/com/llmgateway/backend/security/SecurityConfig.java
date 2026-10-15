@@ -14,6 +14,12 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.access.AccessDeniedHandler;
+import jakarta.servlet.http.HttpServletResponse;
+import tools.jackson.databind.ObjectMapper;
+
+import java.util.Map;
 
 import java.util.List;
 
@@ -30,6 +36,25 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
 
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint((request, response, exception) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json");
+                            new ObjectMapper().writeValue(
+                                    response.getOutputStream(),
+                                    Map.of("message", "Authentication required")
+                            );
+                        })
+                        .accessDeniedHandler((request, response, exception) -> {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.setContentType("application/json");
+                            new ObjectMapper().writeValue(
+                                    response.getOutputStream(),
+                                    Map.of("message", "Access denied")
+                            );
+                        })
+                )
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()

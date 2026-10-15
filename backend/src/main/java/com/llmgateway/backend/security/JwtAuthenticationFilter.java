@@ -10,6 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -37,8 +38,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = authorizationHeader.substring(7);
 
-        if (jwtService.isTokenValid(token)
-                && SecurityContextHolder.getContext().getAuthentication() == null) {
+        if (!jwtService.isTokenValid(token)) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write(
+                    "{\"message\":\"Invalid or expired token\"}");
+            return;
+        }
+
+        if (SecurityContextHolder.getContext().getAuthentication() == null) {
 
             String email = jwtService.extractEmail(token);
 
