@@ -10,6 +10,7 @@ backend/target/
 # Node
 node_modules/
 dist/
+frontend/.vite/
 
 # Environment and secrets
 .env
@@ -21,6 +22,15 @@ application-secret.properties
 # Logs
 *.log
 
+# Test and coverage reports
+coverage/
+backend/coverage/
+*.exec
+
 # OS
 .DS_Store
 Thumbs.db
+
+# Local development
+*.swp
+*.swo
