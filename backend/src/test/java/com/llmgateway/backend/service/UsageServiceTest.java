@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -73,7 +74,7 @@ class UsageServiceTest {
                 .thenReturn(Optional.of(user));
 
         when(usageRecordRepository.summarizeUsageByUserId(7L))
-                .thenReturn(new Object[]{160L, 60L, 220L, 0.0, 2L});
+                .thenReturn(Collections.singletonList(new Object[]{160L, 60L, 220L, 0.0, 2L}));
 
         UsageSummaryResponse summary = usageService.getUserUsageSummary();
 
@@ -146,7 +147,13 @@ class UsageServiceTest {
         when(userRepository.findByEmail("analytics@example.com"))
                 .thenReturn(Optional.of(user));
         when(usageRecordRepository.summarizeUsageByUserId(7L))
-                .thenReturn(new Object[]{0L, 0L, 0L, 0.0, 0L});
+                .thenReturn(Collections.singletonList(
+                        new Object[]{160L, 60L, 220L, 0.0, 2L}
+                ));
+        when(usageRecordRepository.summarizeUsageByUserId(7L))
+                .thenReturn(Collections.singletonList(
+                        new Object[]{0L, 0L, 0L, 0.0, 0L}
+                ));
         when(usageRecordRepository.summarizeUsageByProvider(7L))
                 .thenReturn(List.of());
 

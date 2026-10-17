@@ -30,7 +30,7 @@ public interface UsageRecordRepository extends JpaRepository<UsageRecord, Long> 
     FROM UsageRecord u
     WHERE u.user.id = :userId
     """)
-    Object[] summarizeUsageByUserId(@Param("userId") Long userId);
+    List<Object[]> summarizeUsageByUserId(@Param("userId") Long userId);
 
     @Query("""
     SELECT u.provider,

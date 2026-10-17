@@ -34,7 +34,8 @@ public class UsageService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         Object[] totals = usageRecordRepository
-                .summarizeUsageByUserId(user.getId());
+                .summarizeUsageByUserId(user.getId())
+                .get(0);
 
         return UsageSummaryResponse.builder()
                 .totalRequests(((Number) totals[4]).longValue())

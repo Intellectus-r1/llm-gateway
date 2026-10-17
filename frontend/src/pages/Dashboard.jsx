@@ -7,6 +7,17 @@ import {
   getUsageSummary,
 } from "../services/api";
 
+function getLastSevenDaysRange() {
+    const today = new Date();
+    const from = new Date(today);
+    from.setDate(today.getDate() - 6);
+
+    return {
+        from: from.toISOString().slice(0, 10),
+        to: today.toISOString().slice(0, 10),
+    };
+}
+
 function Dashboard() {
   const [usage, setUsage] = useState(null);
   const [health, setHealth] = useState(null);
@@ -16,18 +27,14 @@ function Dashboard() {
 
   useEffect(() => {
     const loadDashboard = async () => {
-      try {
+      try{
+        const { from, to } = getLastSevenDaysRange();
         const [usageData, healthData, providerData, historyData] =
           await Promise.all([
             getUsageSummary(),
             getHealthStatus(),
             getProviderUsage(),
-              getUsageHistory(
-                  new Date(Date.now() - 6 * 24 * 60 * 60 * 1000)
-                      .toISOString()
-                      .slice(0, 10),
-                  new Date().toISOString().slice(0, 10)
-              ),
+              getUsageHistory(from, to),
         ]);
 
         setUsage(usageData);
