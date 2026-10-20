@@ -85,7 +85,9 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(
                 List.of(
                         "http://localhost:5173",
-                        "http://localhost:8081"
+                        "http://localhost:8081",
+                        "https://llm-gateway.pages.dev",
+                        "https://intellectllm.site"
                 )
         );
 
