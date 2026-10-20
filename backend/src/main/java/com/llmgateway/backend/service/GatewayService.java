@@ -44,6 +44,7 @@ public class GatewayService {
         LlmResponse llmResponse;
         String selectedModel = model;
         LlmProvider selectedProvider = primaryProvider;
+        boolean fallbackUsed = false;
 
         try {
             llmResponse = primaryProvider.generateResponse(
@@ -52,6 +53,7 @@ public class GatewayService {
             );
         } catch (Exception primaryException) {
             selectedProvider = fallbackProvider;
+            fallbackUsed = true;
             selectedModel = fallbackProvider == nvidiaProvider
                     ? "nvidia/nemotron-3-super-120b-a12b"
                     : "gemini-3.1-flash-lite";
@@ -68,6 +70,7 @@ public class GatewayService {
                 .response(llmResponse.getResponse())
                 .provider(selectedProvider.getProviderName())
                 .model(selectedModel)
+                .fallbackUsed(fallbackUsed)
                 .build();
     }
 

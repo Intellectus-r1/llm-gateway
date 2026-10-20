@@ -1,3 +1,4 @@
+
 package com.llmgateway.backend.dto;
 
 import lombok.Builder;
@@ -10,4 +11,5 @@ public class ChatResponse {
     private String response;
     private String provider;
     private String model;
+    private boolean fallbackUsed;
 }
